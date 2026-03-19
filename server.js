@@ -18,8 +18,17 @@ apiRouter.use('/users', require('./routes/users'));
 app.use('/api', apiRouter);
 app.use('/company-sns/public/api', apiRouter);
 
-// Salary calculator
-app.use('/salary-calculator', express.static('/root/salary-calculator'));
+// Salary calculator (Basic auth: tcd/tcd)
+function salaryBasicAuth(req, res, next) {
+  const auth = req.headers['authorization'];
+  if (auth && auth.startsWith('Basic ')) {
+    const [id, pass] = Buffer.from(auth.slice(6), 'base64').toString().split(':');
+    if (id === 'tcd' && pass === 'tcd') return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="salary-calculator"');
+  return res.status(401).send('Unauthorized');
+}
+app.use('/salary-calculator', salaryBasicAuth, express.static('/root/salary-calculator'));
 
 // SPA fallback (do not intercept API routes)
 app.get(/^(?!\/(api|company-sns\/public\/api|salary-calculator)).*/, (req, res) => {
