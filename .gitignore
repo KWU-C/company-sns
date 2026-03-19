@@ -1,0 +1,3 @@
+node_modules/
+sns.db
+data/db.sqlite
