@@ -18,8 +18,11 @@ apiRouter.use('/users', require('./routes/users'));
 app.use('/api', apiRouter);
 app.use('/company-sns/public/api', apiRouter);
 
+// Salary calculator
+app.use('/salary-calculator', express.static('/root/salary-calculator'));
+
 // SPA fallback (do not intercept API routes)
-app.get(/^(?!\/(api|company-sns\/public\/api)).*/, (req, res) => {
+app.get(/^(?!\/(api|company-sns\/public\/api|salary-calculator)).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
