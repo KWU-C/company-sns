@@ -159,7 +159,7 @@ async function runGeneratePosts(jobId, selectedPoints, articleText) {
 
 【重要】
 ・Threadsの1行目は「スクロールが止まる」強さが絶対条件
-・Threadsは改行を多用してリズムを作る（1文ごとに改行）
+・Threadsは300字程度（最大330字）、改行を多用してリズムを作る（1文ごとに改行）
 ・X（140字以内）は1行目だけで完結する強さを持たせる
 ・かわうちさんの声で書く（ですます調・断定的・知的）
 ・JSONのstring内の改行は必ず\\nを使うこと`
@@ -167,6 +167,7 @@ async function runGeneratePosts(jobId, selectedPoints, articleText) {
         {
           role: 'user',
           content: `以下の${selectedPoints.length}つの核心について、それぞれThreads投稿とX投稿を作成してください。
+【Threads文字数の目安：300字程度（最大330字）。冗長な説明は削る。1メッセージに絞る。】
 
 ${pointsList}
 
@@ -370,6 +371,56 @@ router.post('/generate-posts', (req, res) => {
   jobs.set(jobId, { status: 'processing', step: 'start', stepLabel: '開始中...', startedAt: Date.now() });
   res.json({ jobId });
   runGeneratePosts(jobId, selectedPoints, articleText);
+});
+
+// 書き直し（同期・単発）
+router.post('/rewrite', async (req, res) => {
+  const { threadsText, xText, instruction } = req.body;
+  if (!threadsText) return res.status(400).json({ error: '本文が必要です' });
+
+  try {
+    const result = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
+かわうちさんの専任エディターとして、以下のポストを書き直してください。
+
+書き直しの基本方針：
+・Threads：300字程度（最大330字）に圧縮。冗長な説明を削り、1メッセージに絞る
+・1行目は必ずスクロールが止まる強さにする
+・X：140字以内厳守
+・JSONのstring内の改行は必ず\\nを使うこと`
+        },
+        {
+          role: 'user',
+          content: `【現在のThreads投稿】
+${threadsText}
+
+【現在のX投稿】
+${xText || '（なし）'}
+
+${instruction ? `【書き直し指示】${instruction}` : ''}
+
+より短く・より強い投稿に書き直してください。
+JSON形式：
+{
+  "threads": { "final": "書き直し後（\\nで改行）", "charCount": 0 },
+  "x": { "final": "書き直し後（140字以内）", "charCount": 0 }
+}`
+        }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    const data = JSON.parse(result.choices[0].message.content);
+    if (data.threads?.final) data.threads.charCount = data.threads.final.length;
+    if (data.x?.final) data.x.charCount = data.x.final.length;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ジョブ状態取得

@@ -328,6 +328,46 @@
     .copy-btn:hover { background: #4f6ef7; color: #fff; }
     .copy-btn.copied { background: #eef1fd; border-color: #c5cdf8; color: #4f6ef7; }
 
+    .rewrite-bar {
+      padding: 10px 16px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fafafa;
+    }
+    .rewrite-input {
+      flex: 1;
+      padding: 7px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #1a1a2e;
+      background: #fff;
+      outline: none;
+    }
+    .rewrite-input:focus { border-color: #4f6ef7; }
+    .rewrite-btn {
+      padding: 7px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fff;
+      color: #666;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .rewrite-btn:hover:not(:disabled) { border-color: #4f6ef7; color: #4f6ef7; }
+    .rewrite-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .rewriting-indicator {
+      font-size: 12px;
+      color: #4f6ef7;
+      animation: pulse 1s ease-in-out infinite;
+      display: none;
+    }
+
     /* Day labels */
     .days-row {
       display: flex;
@@ -646,7 +686,7 @@
               <div class="post-platform">🧵 Threads</div>
               <div class="post-text" id="threads-${i}">${formatPost(threadsText)}</div>
               <div class="post-footer">
-                <span class="char-count">${threadsText.length} 字</span>
+                <span class="char-count ${threadsText.length > 330 ? 'over' : ''}" id="threads-count-${i}">${threadsText.length} 字</span>
                 <button class="copy-btn" onclick="copyPost('threads-${i}', this)">コピー</button>
               </div>
             </div>
@@ -654,10 +694,15 @@
               <div class="post-platform">𝕏 X</div>
               <div class="post-text" id="x-${i}">${esc(xText)}</div>
               <div class="post-footer">
-                <span class="char-count ${xCount > 140 ? 'over' : ''}">${xCount} / 140字</span>
+                <span class="char-count ${xCount > 140 ? 'over' : ''}" id="x-count-${i}">${xCount} / 140字</span>
                 <button class="copy-btn" onclick="copyPost('x-${i}', this)">コピー</button>
               </div>
             </div>
+          </div>
+          <div class="rewrite-bar">
+            <span class="rewriting-indicator" id="rewriting-${i}">🔄 書き直し中...</span>
+            <input class="rewrite-input" id="rewrite-instruction-${i}" placeholder="書き直し指示（任意）例：もっと短く・1行目を変えて" />
+            <button class="rewrite-btn" id="rewrite-btn-${i}" onclick="rewritePost(${i})">書き直す</button>
           </div>
         </div>
       `;
@@ -692,6 +737,52 @@
     if (chip) {
       chip.classList.toggle('done-chip', newDone);
       chip.classList.toggle('active', !newDone);
+    }
+  }
+
+  async function rewritePost(i) {
+    const threadsEl = document.getElementById(`threads-${i}`);
+    const xEl = document.getElementById(`x-${i}`);
+    const instruction = document.getElementById(`rewrite-instruction-${i}`).value.trim();
+    const btn = document.getElementById(`rewrite-btn-${i}`);
+    const indicator = document.getElementById(`rewriting-${i}`);
+
+    btn.disabled = true;
+    indicator.style.display = 'inline';
+
+    try {
+      const res = await fetch('/api/post-generator/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threadsText: threadsEl.innerText || threadsEl.textContent,
+          xText: xEl.innerText || xEl.textContent,
+          instruction
+        })
+      });
+      const data = await res.json();
+      if (data.error) { showError(data.error); return; }
+
+      if (data.threads?.final) {
+        threadsEl.innerHTML = formatPost(data.threads.final);
+        state.posts[i].threads.final = data.threads.final;
+        const tc = document.getElementById(`threads-count-${i}`);
+        tc.textContent = `${data.threads.charCount} 字`;
+        tc.className = `char-count ${data.threads.charCount > 330 ? 'over' : ''}`;
+      }
+      if (data.x?.final) {
+        xEl.textContent = data.x.final;
+        state.posts[i].x.final = data.x.final;
+        const xc = document.getElementById(`x-count-${i}`);
+        xc.textContent = `${data.x.charCount} / 140字`;
+        xc.className = `char-count ${data.x.charCount > 140 ? 'over' : ''}`;
+      }
+      document.getElementById(`rewrite-instruction-${i}`).value = '';
+    } catch (e) {
+      showError('書き直しエラー: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      indicator.style.display = 'none';
     }
   }
 
