@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポストジェネレーター | TCD</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: #f4f5f7;
+      min-height: 100vh;
+      padding: 32px 20px;
+      color: #1a1a2e;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    .header { margin-bottom: 32px; }
+    .header h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; letter-spacing: -0.5px; }
+    .header p { font-size: 13px; color: #888; margin-top: 4px; }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+
+    /* Input */
+    .input-row { display: flex; gap: 10px; }
+
+    input[type="url"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1a1a2e;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="url"]:focus { border-color: #4f6ef7; background: #fff; }
+    input[type="url"]::placeholder { color: #bbb; }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: #4f6ef7; color: #fff; }
+    .btn-primary:hover { background: #3a5ce4; }
+    .btn-primary:disabled { background: #c0c8f5; cursor: not-allowed; }
+
+    /* Progress */
+    #progressCard { display: none; }
+
+    .steps { list-style: none; }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
+      color: #bbb;
+      transition: color 0.3s;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      background: #f0f0f0;
+      transition: all 0.3s;
+    }
+    .step.active { color: #1a1a2e; font-weight: 600; }
+    .step.active .step-icon {
+      background: #eef1fd;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .step.done { color: #4f6ef7; }
+    .step.done .step-icon { background: #eef1fd; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+
+    .error-msg {
+      background: #fff2f2;
+      border: 1px solid #fcc;
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #c00;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Results */
+    #resultsCard { display: none; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .results-grid { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; }
+    }
+
+    .result-box {
+      background: #f8f9ff;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .result-box.accent { background: #eef1fd; }
+
+    .result-platform {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #4f6ef7;
+      margin-bottom: 12px;
+    }
+    .result-platform .platform-icon { font-size: 16px; }
+
+    .result-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1a2e;
+      white-space: pre-wrap;
+      margin-bottom: 12px;
+      min-height: 80px;
+    }
+
+    .result-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: #aaa;
+      font-variant-numeric: tabular-nums;
+    }
+    .char-count.over { color: #e55; }
+
+    .copy-btn {
+      padding: 6px 14px;
+      border: 1.5px solid #4f6ef7;
+      border-radius: 8px;
+      background: #fff;
+      color: #4f6ef7;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: #4f6ef7; color: #fff; }
+    .copy-btn.copied { background: #eef1fd; color: #4f6ef7; border-color: #c0c8f5; }
+
+    /* AI Log (collapsed) */
+    .log-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .log-toggle-icon { font-size: 12px; color: #bbb; transition: transform 0.2s; }
+    .log-toggle-icon.open { transform: rotate(180deg); }
+
+    .log-body { display: none; margin-top: 16px; }
+    .log-body.open { display: block; }
+
+    .log-section { margin-bottom: 20px; }
+    .log-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #888;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .log-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #f0f0f0;
+    }
+
+    .draft-item {
+      background: #f8f9ff;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .draft-type {
+      font-size: 11px;
+      font-weight: 600;
+      color: #4f6ef7;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .draft-content { color: #1a1a2e; line-height: 1.6; white-space: pre-wrap; }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .score-badge {
+      background: #eef1fd;
+      color: #4f6ef7;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .score-text { color: #aaa; }
+
+    .key-points {
+      background: #fffbf5;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+    }
+    .key-points ul { padding-left: 18px; }
+    .key-points li { margin-bottom: 4px; color: #555; line-height: 1.5; }
+    .key-points .kp-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e67e22;
+      margin-bottom: 6px;
+    }
+
+    .regenerate-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1>📝 ポストジェネレーター</h1>
+      <p>note記事のURLを入力するだけで、X・Threadsのポスト案を自動生成します</p>
+    </div>
+
+    <!-- 入力 -->
+    <div class="card">
+      <div class="card-title">note記事URL</div>
+      <div class="input-row">
+        <input type="url" id="noteUrl" placeholder="https://note.com/kwu/n/..." />
+        <button class="btn btn-primary" id="generateBtn" onclick="generate()">生成する</button>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <!-- 進捗 -->
+    <div class="card" id="progressCard">
+      <div class="card-title">生成中...</div>
+      <ul class="steps">
+        <li class="step" id="step-fetch">
+          <div class="step-icon">📰</div>
+          <span>記事を取得中...</span>
+        </li>
+        <li class="step" id="step-extract">
+          <div class="step-icon">🔍</div>
+          <span>核心を抽出中（GPT）</span>
+        </li>
+        <li class="step" id="step-drafts">
+          <div class="step-icon">✏️</div>
+          <span>ポスト案を生成中（GPT）</span>
+        </li>
+        <li class="step" id="step-gemini">
+          <div class="step-icon">🔄</div>
+          <span>評価・改訂中（Gemini）</span>
+        </li>
+        <li class="step" id="step-polish">
+          <div class="step-icon">✨</div>
+          <span>最終精緻化中（Claude）</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 結果 -->
+    <div class="card" id="resultsCard">
+      <div class="card-title">生成結果</div>
+      <div class="results-grid">
+        <!-- Threads -->
+        <div class="result-box accent">
+          <div class="result-platform">
+            <span class="platform-icon">🧵</span> Threads
+          </div>
+          <div class="result-text" id="threadsText"></div>
+          <div class="result-footer">
+            <span class="char-count" id="threadsCount">0 字</span>
+            <button class="copy-btn" onclick="copyText('threadsText', this)">コピー</button>
+          </div>
+        </div>
+        <!-- X -->
+        <div class="result-box">
+          <div class="result-platform">
+            <span class="platform-icon">𝕏</span> X（旧Twitter）
+          </div>
+          <div class="result-text" id="xText"></div>
+          <div class="result-footer">
+            <span class="char-count" id="xCount">0 字 / 140字</span>
+            <button class="copy-btn" onclick="copyText('xText', this)">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="regenerate-row">
+        <button class="btn btn-primary" onclick="generate()">再生成する</button>
+      </div>
+    </div>
+
+    <!-- AIログ -->
+    <div class="card" id="logCard" style="display:none;">
+      <div class="log-toggle" onclick="toggleLog()">
+        <div class="card-title" style="margin:0">AI作業ログ</div>
+        <span class="log-toggle-icon" id="logIcon">▼</span>
+      </div>
+      <div class="log-body" id="logBody">
+
+        <div class="log-section">
+          <div class="log-section-title">📌 抽出した核心</div>
+          <div class="key-points" id="keyPointsLog"></div>
+        </div>
+
+        <div class="log-section">
+          <div class="log-section-title">✏️ GPT生成案（Threads）</div>
+          <div id="threadsDraftsLog"></div>
+        </div>
+
+        <div class="log-section">
+          <div class="log-section-title">✏️ GPT生成案（X）</div>
+          <div id="xDraftsLog"></div>
+        </div>
+
+        <div class="log-section">
+          <div class="log-section-title">🔄 Geminiの評価・改善</div>
+          <div id="geminiLog"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const STEPS = ['fetch', 'extract', 'drafts', 'gemini', 'polish', 'complete'];
+    let pollTimer = null;
+
+    async function generate() {
+      const noteUrl = document.getElementById('noteUrl').value.trim();
+      if (!noteUrl) { showError('note記事のURLを入力してください'); return; }
+      if (!noteUrl.includes('note.com')) { showError('note.comのURLを入力してください'); return; }
+
+      hideError();
+      resetProgress();
+      showSection('progressCard');
+      hideSection('resultsCard');
+      hideSection('logCard');
+      document.getElementById('generateBtn').disabled = true;
+
+      try {
+        const res = await fetch('/api/post-generator/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noteUrl })
+        });
+        const { jobId, error } = await res.json();
+        if (error) { showError(error); resetUI(); return; }
+
+        pollTimer = setInterval(() => pollResult(jobId), 1500);
+      } catch (e) {
+        showError('通信エラーが発生しました: ' + e.message);
+        resetUI();
+      }
+    }
+
+    async function pollResult(jobId) {
+      try {
+        const res = await fetch(`/api/post-generator/result/${jobId}`);
+        const job = await res.json();
+
+        updateProgress(job.step);
+
+        if (job.status === 'done') {
+          clearInterval(pollTimer);
+          showResults(job);
+          resetUI();
+        } else if (job.status === 'error') {
+          clearInterval(pollTimer);
+          showError(job.error || '生成中にエラーが発生しました');
+          resetUI();
+        }
+      } catch (e) {
+        // ネットワークエラーは無視して再試行
+      }
+    }
+
+    function updateProgress(currentStep) {
+      const currentIdx = STEPS.indexOf(currentStep);
+      STEPS.forEach((id, i) => {
+        const el = document.getElementById(`step-${id}`);
+        if (!el) return;
+        el.classList.remove('active', 'done');
+        if (i < currentIdx) el.classList.add('done');
+        else if (i === currentIdx) el.classList.add('active');
+      });
+    }
+
+    function showResults(job) {
+      const { final, keyPoints, drafts, revised } = job;
+
+      // メイン結果
+      const threadsText = final?.threads?.final || '';
+      const xText = final?.x?.final || '';
+
+      setResult('threadsText', 'threadsCount', threadsText, 500);
+      setResult('xText', 'xCount', xText, 140, true);
+
+      showSection('resultsCard');
+
+      // AI ログ
+      renderLog(keyPoints, drafts, revised);
+      showSection('logCard');
+
+      hideSection('progressCard');
+    }
+
+    function setResult(textId, countId, text, limit, showLimit = false) {
+      document.getElementById(textId).textContent = text;
+      const count = text.length;
+      const countEl = document.getElementById(countId);
+      countEl.textContent = showLimit ? `${count} 字 / ${limit}字` : `${count} 字`;
+      countEl.classList.toggle('over', count > limit);
+    }
+
+    function renderLog(keyPoints, drafts, revised) {
+      // 核心
+      if (keyPoints) {
+        const kp = document.getElementById('keyPointsLog');
+        kp.innerHTML = `
+          <div class="kp-label">主題：${keyPoints.mainThesis || ''}</div>
+          <ul>${(keyPoints.points || []).map(p => `<li>${p}</li>`).join('')}</ul>
+        `;
+      }
+
+      // GPT Threads案
+      if (drafts?.threads) {
+        document.getElementById('threadsDraftsLog').innerHTML =
+          drafts.threads.map((d, i) => `
+            <div class="draft-item">
+              <div class="draft-type">案${i + 1} — ${d.type}</div>
+              <div class="draft-content">${escHtml(d.content)}</div>
+            </div>
+          `).join('');
+      }
+
+      // GPT X案
+      if (drafts?.x) {
+        document.getElementById('xDraftsLog').innerHTML =
+          drafts.x.map((d, i) => `
+            <div class="draft-item">
+              <div class="draft-type">案${i + 1} — ${d.type}</div>
+              <div class="draft-content">${escHtml(d.content)}</div>
+            </div>
+          `).join('');
+      }
+
+      // Gemini評価
+      if (revised) {
+        document.getElementById('geminiLog').innerHTML = `
+          <div class="draft-item">
+            <div class="draft-type">Threadsの改善</div>
+            <div class="draft-content">${escHtml(revised.bestThreads?.improvements || '')}</div>
+            ${geminiScore(revised.threadsScores, revised.bestThreads?.selectedIndex)}
+          </div>
+          <div class="draft-item">
+            <div class="draft-type">Xの改善</div>
+            <div class="draft-content">${escHtml(revised.bestX?.improvements || '')}</div>
+            ${geminiScore(revised.xScores, revised.bestX?.selectedIndex)}
+          </div>
+        `;
+      }
+    }
+
+    function geminiScore(scores, bestIdx) {
+      if (!scores?.length) return '';
+      return `<div class="score-row">
+        ${scores.map(s => `
+          <span class="score-badge${s.index === bestIdx ? '' : ''}" style="${s.index === bestIdx ? '' : 'background:#f0f0f0;color:#888'}">
+            案${s.index}：${s.total}点
+          </span>
+        `).join('')}
+      </div>`;
+    }
+
+    function copyText(id, btn) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'コピー済み';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'コピー';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    function toggleLog() {
+      const body = document.getElementById('logBody');
+      const icon = document.getElementById('logIcon');
+      body.classList.toggle('open');
+      icon.classList.toggle('open');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function hideError() { document.getElementById('errorMsg').style.display = 'none'; }
+    function showSection(id) { document.getElementById(id).style.display = 'block'; }
+    function hideSection(id) { document.getElementById(id).style.display = 'none'; }
+
+    function resetProgress() {
+      STEPS.forEach(id => {
+        const el = document.getElementById(`step-${id}`);
+        if (el) el.classList.remove('active', 'done');
+      });
+    }
+
+    function resetUI() {
+      document.getElementById('generateBtn').disabled = false;
+    }
+
+    function escHtml(str) {
+      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

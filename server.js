@@ -18,6 +18,10 @@ apiRouter.use('/users', require('./routes/users'));
 app.use('/api', apiRouter);
 app.use('/company-sns/public/api', apiRouter);
 
+// Post Generator
+app.use('/api/post-generator', require('./routes/postGenerator'));
+app.use('/post-generator', express.static(path.join(__dirname, 'public/post-generator')));
+
 // Salary calculator (Basic auth: tcd/tcd)
 function salaryBasicAuth(req, res, next) {
   const auth = req.headers['authorization'];
@@ -31,7 +35,7 @@ function salaryBasicAuth(req, res, next) {
 app.use('/salary-calculator', salaryBasicAuth, express.static('/root/salary-calculator'));
 
 // SPA fallback (do not intercept API routes)
-app.get(/^(?!\/(api|company-sns\/public\/api|salary-calculator)).*/, (req, res) => {
+app.get(/^(?!\/(api|company-sns\/public\/api|salary-calculator|post-generator)).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
