@@ -33,17 +33,19 @@ const THREADS_POLICY = `
 【Threads編集ポリシー】
 成功の方程式：違和感（フック）→ 通説 → 否定 → 本質
 
-1行目の鉄則（0.5秒でスクロール停止）：
-・否定型：「〜では勝てない」
+【1行目は命】スクロールを0.5秒以内に止める：
+・否定型：「〜では勝てない」「〜は勘違い」
 ・疑問型：「なぜ〜なのか」
 ・通説否定：「〜と思われがちだが、実は違う」
-・具体的違和感：状況描写でいきなり問題を示す
-・NG：抽象語スタート（企業文化、戦略、構造）・正論スタート・定義文
+・具体的違和感：状況をいきなり描写して問題を示す
+・NG絶対禁止：抽象語スタート（企業文化、戦略、構造）・正論スタート・定義文
 
 文章ルール：
-・1文1メッセージ、1文20文字前後、改行でリズム
-・ですます調、断定ベース（曖昧表現は最小限）
-・要素は最大3つ、映像が浮かぶ言葉
+・1文1メッセージ、1文20文字前後
+・改行でリズムを作る（重要：1文ごとに改行を入れる）
+・ですます調、断定ベース
+・要素は最大3つ
+・映像が浮かぶ言葉を使う
 
 コンテンツタイプ：
 ・発見系（固有名詞・社会性・強い違和感）→ 1000+views期待
@@ -63,258 +65,314 @@ function parseAIJson(text) {
   }
 }
 
-// ─── パイプライン関数 ──────────────────────────────────────────────────────
-
-async function fetchArticle(url) {
-  const jinaUrl = `https://r.jina.ai/${url}`;
-  const res = await fetch(jinaUrl, {
-    headers: { 'Accept': 'text/plain' },
-    signal: AbortSignal.timeout(20000)
-  });
-  if (!res.ok) throw new Error(`記事の取得に失敗しました（${res.status}）`);
-  const text = await res.text();
-  if (text.length < 200) throw new Error('記事の内容が取得できませんでした');
-  return text;
+const jobs = new Map();
+function newJobId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+function updateJob(jobId, data) {
+  jobs.set(jobId, { ...jobs.get(jobId), ...data, updatedAt: Date.now() });
 }
 
-async function extractKeyPoints(article) {
-  const res = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: BOOK_CONTEXT + `
-以下の記事から、SNSポストに適した核を抽出してください。
+// ─── フェーズ1：核心10点の抽出 ────────────────────────────────────────────
+
+async function runExtract(jobId, noteUrl) {
+  try {
+    updateJob(jobId, { step: 'fetch', stepLabel: '📰 記事を取得中...' });
+
+    const jinaRes = await fetch(`https://r.jina.ai/${noteUrl}`, {
+      headers: { 'Accept': 'text/plain' },
+      signal: AbortSignal.timeout(20000)
+    });
+    if (!jinaRes.ok) throw new Error(`記事の取得に失敗しました（${jinaRes.status}）`);
+    const articleText = await jinaRes.text();
+    if (articleText.length < 200) throw new Error('記事の内容が取得できませんでした');
+
+    updateJob(jobId, { step: 'extract', stepLabel: '🔍 核心10点を抽出中（GPT）...' });
+
+    const res = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
+
+この記事から、SNSポストに切り出せる核心を正確に10点抽出してください。
+
+各核心は以下の条件を満たすこと：
+・それ単体で1つのポストになれる独立した洞察
+・かわうちさんの思想・経験・知見に基づくもの
+・異なるタイプ（発見系・思想系・通説否定・問いかけ・対比）をバランスよく
+
 JSON形式で返してください：
 {
-  "mainThesis": "記事の主張を20字以内で",
-  "points": ["核心的な主張・気づきを3〜5点"],
-  "targetEmotion": "読者に感じさせたいこと（驚き・納得・共感など）",
-  "bestQuote": "記事中の最も印象的な一節（そのまま引用）",
-  "contentType": "発見系 or 思想系",
-  "socialHook": "社会トピックや固有名詞があれば記載、なければnull"
-}`
-      },
-      { role: 'user', content: article.slice(0, 6000) }
-    ],
-    response_format: { type: 'json_object' }
-  });
-  return JSON.parse(res.choices[0].message.content);
-}
-
-async function generateDrafts(keyPoints, article) {
-  const res = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
-
-ポスト作成ルール：
-- Threads：500字以内、改行でリズム、強いフック必須
-- X：140字以内（日本語140文字厳守）、インパクト最優先
-- 3案はそれぞれ異なるアプローチで（発見系・通説否定系・問いかけ系）
-- かわうちさんの声で書く（ですます調・断定的・知的・経営者目線）`
-      },
-      {
-        role: 'user',
-        content: `記事の核心：
-${JSON.stringify(keyPoints, null, 2)}
-
-記事本文（抜粋）：
-${article.slice(0, 3000)}
-
-3つのポスト案を作成してください。
-JSON形式：
-{
-  "threads": [
-    {"content": "投稿本文", "type": "発見系/思想系/問いかけ系", "hook": "1行目の文章", "approach": "アプローチの説明"},
-    {"content": "...", "type": "...", "hook": "...", "approach": "..."},
-    {"content": "...", "type": "...", "hook": "...", "approach": "..."}
-  ],
-  "x": [
-    {"content": "投稿本文（140字以内）", "type": "...", "approach": "..."},
-    {"content": "...", "type": "...", "approach": "..."},
-    {"content": "...", "type": "...", "approach": "..."}
+  "points": [
+    {
+      "id": 1,
+      "title": "核心の短いタイトル（15字以内）",
+      "insight": "核心となるメッセージ（50字以内）",
+      "type": "発見系 / 思想系 / 通説否定 / 問いかけ / 対比",
+      "hook": "Threadsの1行目として使える強い一文",
+      "expectedViews": "100+ / 500+ / 1000+",
+      "rawText": "記事中の関連する原文（100字以内）"
+    }
   ]
 }`
-      }
-    ],
-    response_format: { type: 'json_object' }
-  });
-  return JSON.parse(res.choices[0].message.content);
+        },
+        { role: 'user', content: articleText.slice(0, 8000) }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    const { points } = JSON.parse(res.choices[0].message.content);
+    updateJob(jobId, {
+      status: 'done',
+      step: 'complete',
+      stepLabel: '完了',
+      points,
+      articleText: articleText.slice(0, 6000)
+    });
+  } catch (err) {
+    console.error(`[Extract] Job ${jobId} failed:`, err.message);
+    updateJob(jobId, { status: 'error', error: err.message });
+  }
 }
 
-async function evaluateAndRevise(drafts, keyPoints) {
-  const model = gemini.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: { responseMimeType: 'application/json' }
-  });
+// ─── フェーズ2：選択した核心からポスト生成 ────────────────────────────────
 
-  const prompt = `
-あなたはSNSポストの専門編集者です。以下の基準でポスト案を評価し、最良案を改善してください。
+async function runGeneratePosts(jobId, selectedPoints, articleText) {
+  try {
+    // Step 1: GPTで全ポスト案を一括生成
+    updateJob(jobId, { step: 'drafts', stepLabel: '✏️ ポスト案を生成中（GPT）...' });
+
+    const pointsList = selectedPoints.map((p, i) =>
+      `【核心${i + 1}】タイプ：${p.type}\n洞察：${p.insight}\n推奨フック：${p.hook}`
+    ).join('\n\n');
+
+    const draftRes = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
+
+各核心に対してThreads投稿とX投稿を作成してください。
+
+【重要】
+・Threadsの1行目は「スクロールが止まる」強さが絶対条件
+・Threadsは改行を多用してリズムを作る（1文ごとに改行）
+・X（140字以内）は1行目だけで完結する強さを持たせる
+・かわうちさんの声で書く（ですます調・断定的・知的）
+・JSONのstring内の改行は必ず\\nを使うこと`
+        },
+        {
+          role: 'user',
+          content: `以下の${selectedPoints.length}つの核心について、それぞれThreads投稿とX投稿を作成してください。
+
+${pointsList}
+
+---
+記事本文（参考）：
+${articleText.slice(0, 3000)}
+
+JSON形式：
+{
+  "posts": [
+    {
+      "pointId": 1,
+      "threads": {
+        "line1": "1行目（フック）",
+        "content": "投稿全文（\\nで改行）",
+        "type": "発見系など"
+      },
+      "x": {
+        "content": "140字以内の投稿文",
+        "type": "..."
+      }
+    }
+  ]
+}`
+        }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    const { posts: draftPosts } = JSON.parse(draftRes.choices[0].message.content);
+
+    // Step 2: Geminiで1行目を評価・改善
+    updateJob(jobId, { step: 'gemini', stepLabel: '🔄 1行目を強化中（Gemini）...' });
+
+    const geminiModel = gemini.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+
+    const firstLines = draftPosts.map((p, i) =>
+      `投稿${i + 1}（${p.threads.type}）: ${p.threads.line1}`
+    ).join('\n');
+
+    const geminiRes = await geminiModel.generateContent(`
+あなたはThreadsの1行目専門の編集者です。
 
 ${THREADS_POLICY}
 
-【評価基準（各10点）】
-1. フック強度：1行目でスクロールを止められるか
-2. 即理解性：0.5秒で意味が取れるか
-3. 感情トリガー：共感・驚き・納得のどれかを呼ぶか
-4. 思想の深さ：表面的でなく洞察があるか
-5. 編集ポリシー準拠：NGパターンがないか
+以下の${draftPosts.length}つの1行目を評価し、改善してください。
 
-【記事の核心】
-${JSON.stringify(keyPoints, null, 2)}
+${firstLines}
 
-【Threadsポスト案（3案）】
-${drafts.threads.map((d, i) => `案${i + 1}（${d.type}）:\n${d.content}`).join('\n\n---\n\n')}
+評価基準（各10点）：
+1. スクロール停止力（0.5秒で止まるか）
+2. 即理解性（一瞬で意味が取れるか）
+3. 感情トリガー（驚き・違和感・納得）
+4. NGパターン回避（抽象語・正論・定義文でないか）
 
-【Xポスト案（3案）】
-${drafts.x.map((d, i) => `案${i + 1}（${d.type}）:\n${d.content}`).join('\n\n---\n\n')}
-
-最高得点の案を選び、さらに改善した版を作成してください。
+各1行目を採点し、スコアが8点未満なら改善版を作成してください。
 
 JSON形式：
 {
-  "threadsScores": [
-    {"index": 1, "total": 0, "breakdown": {"hook": 0, "clarity": 0, "emotion": 0, "depth": 0, "policy": 0}, "weakness": "弱点"},
-    {"index": 2, "total": 0, "breakdown": {...}, "weakness": "..."},
-    {"index": 3, "total": 0, "breakdown": {...}, "weakness": "..."}
-  ],
-  "xScores": [
-    {"index": 1, "total": 0, "breakdown": {...}, "weakness": "..."},
-    {"index": 2, "total": 0, "breakdown": {...}, "weakness": "..."},
-    {"index": 3, "total": 0, "breakdown": {...}, "weakness": "..."}
-  ],
-  "bestThreads": {
-    "selectedIndex": 1,
-    "original": "選んだ案の原文",
-    "improved": "改善版",
-    "improvements": "改善のポイント"
-  },
-  "bestX": {
-    "selectedIndex": 1,
-    "original": "選んだ案の原文",
-    "improved": "改善版（140字以内）",
-    "improvements": "改善のポイント"
-  }
-}`;
+  "evaluations": [
+    {
+      "index": 1,
+      "score": 0,
+      "issues": "問題点",
+      "improved": "改善版（改善不要なら元の文をそのまま）"
+    }
+  ]
+}`);
 
-  const result = await model.generateContent(prompt);
-  return parseAIJson(result.response.text());
-}
+    const { evaluations } = parseAIJson(geminiRes.response.text());
 
-async function finalPolish(revised, keyPoints) {
-  // TODO: Claude APIキー取得後、Anthropicに切り替え
-  const res = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
-
-あなたはかわうちさんの専任エディターです。
-Geminiが選んだ最良案を、かわうちさんの「声」として最終精緻化してください。
-
-最終チェック：
-・『行動ブランディング』の思想と一致しているか
-・BtoB経営者の心に刺さるか
-・TCDブランドアーキテクトとしての権威性があるか
-・最初の一文は本当に強いか（必要なら大幅修正可）
-・X案は140字を絶対に超えないこと`
-      },
-      {
-        role: 'user',
-        content: `【Geminiが選んだ最良案】
-
-Threads改善版：
-${revised.bestThreads.improved}
-
-Geminiの改善ポイント：${revised.bestThreads.improvements}
-
----
-
-X改善版：
-${revised.bestX.improved}
-
-Geminiの改善ポイント：${revised.bestX.improvements}
-
----
-
-記事の核心：
-${JSON.stringify(keyPoints, null, 2)}
-
-最終版を作成してください。
-JSON形式：
-{
-  "threads": {
-    "final": "最終版テキスト",
-    "characterCount": 0,
-    "changes": "変更したポイント"
-  },
-  "x": {
-    "final": "最終版テキスト（140字以内厳守）",
-    "characterCount": 0,
-    "changes": "変更したポイント"
-  }
-}`
+    // Geminiの改善を反映
+    const improvedPosts = draftPosts.map((post, i) => {
+      const eval_ = evaluations.find(e => e.index === i + 1);
+      if (eval_ && eval_.improved) {
+        const improvedContent = post.threads.content.replace(
+          post.threads.line1,
+          eval_.improved
+        );
+        return {
+          ...post,
+          threads: {
+            ...post.threads,
+            line1: eval_.improved,
+            content: improvedContent,
+            geminiScore: eval_.score,
+            geminiIssues: eval_.issues
+          }
+        };
       }
-    ],
-    response_format: { type: 'json_object' }
-  });
+      return { ...post, threads: { ...post.threads, geminiScore: eval_?.score } };
+    });
 
-  const result = JSON.parse(res.choices[0].message.content);
-  if (result.threads?.final) result.threads.characterCount = result.threads.final.length;
-  if (result.x?.final) result.x.characterCount = result.x.final.length;
-  return result;
-}
+    // Step 3: GPTで最終精緻化
+    updateJob(jobId, { step: 'polish', stepLabel: '✨ 最終精緻化中（Claude）...' });
 
-// ─── ジョブキュー ──────────────────────────────────────────────────────────
+    const polishRes = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: BOOK_CONTEXT + '\n\n' + THREADS_POLICY + `
+かわうちさんの専任エディターとして最終チェックと精緻化を行います。
 
-const jobs = new Map();
+確認事項：
+・1行目は本当に強いか（弱ければ書き直す）
+・ですます調が徹底されているか
+・改行が適切か（1文ごとの改行）
+・X投稿は140字を超えていないか（超えていたら削る）
+・TCD/行動ブランディングの思想と一致しているか
+・JSONのstring内の改行は必ず\\nを使うこと`
+        },
+        {
+          role: 'user',
+          content: `以下の${improvedPosts.length}つのポスト案を最終確認・精緻化してください。
 
-async function runPipeline(jobId, noteUrl) {
-  const update = (data) => {
-    jobs.set(jobId, { ...jobs.get(jobId), ...data, updatedAt: Date.now() });
-  };
+${improvedPosts.map((p, i) => `
+【投稿${i + 1}】
+Threads1行目：${p.threads.line1}
+Threads全文：
+${p.threads.content}
+X：${p.x.content}
+`).join('\n---\n')}
 
-  try {
-    update({ step: 'fetch', stepLabel: '📰 記事を取得中...' });
-    const article = await fetchArticle(noteUrl);
+JSON形式：
+{
+  "posts": [
+    {
+      "pointId": 1,
+      "threads": {
+        "final": "最終版全文（\\nで改行）",
+        "line1": "1行目",
+        "changes": "修正点"
+      },
+      "x": {
+        "final": "最終版（140字以内）",
+        "changes": "修正点"
+      }
+    }
+  ]
+}`
+        }
+      ],
+      response_format: { type: 'json_object' }
+    });
 
-    update({ step: 'extract', stepLabel: '🔍 核心を抽出中（GPT）...' });
-    const keyPoints = await extractKeyPoints(article);
+    const { posts: finalPosts } = JSON.parse(polishRes.choices[0].message.content);
 
-    update({ step: 'drafts', stepLabel: '✏️ ポスト案を生成中（GPT）...' });
-    const drafts = await generateDrafts(keyPoints, article);
+    // 文字数カウントを追加
+    const result = finalPosts.map((p, i) => ({
+      ...p,
+      pointTitle: selectedPoints[i]?.title,
+      pointType: selectedPoints[i]?.type,
+      threads: {
+        ...p.threads,
+        charCount: (p.threads.final || '').length
+      },
+      x: {
+        ...p.x,
+        charCount: (p.x.final || '').length
+      }
+    }));
 
-    update({ step: 'gemini', stepLabel: '🔄 評価・改訂中（Gemini）...' });
-    const revised = await evaluateAndRevise(drafts, keyPoints);
-
-    update({ step: 'polish', stepLabel: '✨ 最終精緻化中（Claude）...' });
-    const final = await finalPolish(revised, keyPoints);
-
-    update({ status: 'done', step: 'complete', stepLabel: '完了', keyPoints, drafts, revised, final });
+    updateJob(jobId, {
+      status: 'done',
+      step: 'complete',
+      stepLabel: '完了',
+      posts: result,
+      drafts: improvedPosts
+    });
   } catch (err) {
-    console.error(`[PostGenerator] Job ${jobId} failed:`, err.message);
-    jobs.set(jobId, { ...jobs.get(jobId), status: 'error', error: err.message });
+    console.error(`[GeneratePosts] Job ${jobId} failed:`, err.message);
+    updateJob(jobId, { status: 'error', error: err.message });
   }
 }
 
 // ─── ルート ────────────────────────────────────────────────────────────────
 
-router.post('/generate', (req, res) => {
+// フェーズ1：核心抽出
+router.post('/extract', (req, res) => {
   const { noteUrl } = req.body;
   if (!noteUrl?.trim()) return res.status(400).json({ error: 'noteのURLを入力してください' });
   if (!noteUrl.includes('note.com')) return res.status(400).json({ error: 'note.comのURLを入力してください' });
 
-  const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const jobId = newJobId();
   jobs.set(jobId, { status: 'processing', step: 'start', stepLabel: '開始中...', startedAt: Date.now() });
-
   res.json({ jobId });
-  runPipeline(jobId, noteUrl.trim());
+  runExtract(jobId, noteUrl.trim());
 });
 
+// フェーズ2：ポスト生成
+router.post('/generate-posts', (req, res) => {
+  const { selectedPoints, articleText } = req.body;
+  if (!selectedPoints?.length) return res.status(400).json({ error: '核心を1つ以上選択してください' });
+  if (selectedPoints.length > 5) return res.status(400).json({ error: '最大5つまで選択できます' });
+
+  const jobId = newJobId();
+  jobs.set(jobId, { status: 'processing', step: 'start', stepLabel: '開始中...', startedAt: Date.now() });
+  res.json({ jobId });
+  runGeneratePosts(jobId, selectedPoints, articleText);
+});
+
+// ジョブ状態取得
 router.get('/result/:jobId', (req, res) => {
   const job = jobs.get(req.params.jobId);
   if (!job) return res.status(404).json({ error: 'ジョブが見つかりません' });

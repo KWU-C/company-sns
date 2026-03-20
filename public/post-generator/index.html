@@ -11,573 +11,717 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
       background: #f4f5f7;
       min-height: 100vh;
-      padding: 32px 20px;
+      padding: 28px 16px 60px;
       color: #1a1a2e;
     }
 
-    .container { max-width: 860px; margin: 0 auto; }
+    .container { max-width: 900px; margin: 0 auto; }
 
-    /* Header */
-    .header { margin-bottom: 32px; }
-    .header h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; letter-spacing: -0.5px; }
-    .header p { font-size: 13px; color: #888; margin-top: 4px; }
+    .header { margin-bottom: 24px; }
+    .header h1 { font-size: 20px; font-weight: 800; color: #1a1a2e; letter-spacing: -0.5px; }
+    .header p { font-size: 12px; color: #999; margin-top: 4px; }
 
     /* Card */
     .card {
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      padding: 28px;
-      margin-bottom: 20px;
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      padding: 24px;
       margin-bottom: 16px;
     }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
 
-    /* Input */
+    /* Buttons */
+    .btn {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: #4f6ef7; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #3a5ce4; }
+    .btn-primary:disabled { background: #c5cdf8; cursor: not-allowed; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+    .btn-outline {
+      background: #fff;
+      border: 1.5px solid #e0e0e0;
+      color: #666;
+    }
+    .btn-outline:hover { border-color: #4f6ef7; color: #4f6ef7; }
+
+    /* Input row */
     .input-row { display: flex; gap: 10px; }
-
     input[type="url"] {
       flex: 1;
-      padding: 12px 16px;
+      padding: 11px 14px;
       border: 1.5px solid #e0e0e0;
       border-radius: 10px;
-      font-size: 15px;
+      font-size: 14px;
       color: #1a1a2e;
       background: #fafafa;
       outline: none;
       transition: border-color 0.2s;
     }
     input[type="url"]:focus { border-color: #4f6ef7; background: #fff; }
-    input[type="url"]::placeholder { color: #bbb; }
+    input[type="url"]::placeholder { color: #ccc; }
 
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
+    /* Error */
+    .error-msg {
+      background: #fff2f2;
+      border: 1px solid #fcc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #c00;
+      font-size: 12px;
+      margin-top: 10px;
+      display: none;
     }
-    .btn-primary { background: #4f6ef7; color: #fff; }
-    .btn-primary:hover { background: #3a5ce4; }
-    .btn-primary:disabled { background: #c0c8f5; cursor: not-allowed; }
 
-    /* Progress */
-    #progressCard { display: none; }
-
+    /* Progress steps */
     .steps { list-style: none; }
     .step {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 0;
+      gap: 10px;
+      padding: 9px 0;
       border-bottom: 1px solid #f5f5f5;
-      font-size: 14px;
-      color: #bbb;
+      font-size: 13px;
+      color: #ccc;
       transition: color 0.3s;
     }
     .step:last-child { border-bottom: none; }
     .step-icon {
-      width: 28px;
-      height: 28px;
+      width: 26px; height: 26px;
       border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
       background: #f0f0f0;
+      flex-shrink: 0;
       transition: all 0.3s;
     }
     .step.active { color: #1a1a2e; font-weight: 600; }
-    .step.active .step-icon {
-      background: #eef1fd;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
+    .step.active .step-icon { background: #eef1fd; animation: pulse 1.2s ease-in-out infinite; }
     .step.done { color: #4f6ef7; }
     .step.done .step-icon { background: #eef1fd; }
-
     @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.7; }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); opacity: 0.75; }
     }
 
-    .error-msg {
-      background: #fff2f2;
-      border: 1px solid #fcc;
-      border-radius: 10px;
-      padding: 12px 16px;
-      color: #c00;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
+    /* Key points grid */
+    .points-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
+    .points-count {
+      font-size: 12px;
+      color: #888;
+    }
+    .points-count span { font-weight: 700; color: #4f6ef7; }
 
-    /* Results */
-    #resultsCard { display: none; }
-
-    .results-grid {
+    .points-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
     }
-    @media (max-width: 600px) {
-      .results-grid { grid-template-columns: 1fr; }
-      .input-row { flex-direction: column; }
-    }
+    @media (max-width: 600px) { .points-grid { grid-template-columns: 1fr; } }
 
-    .result-box {
-      background: #f8f9ff;
+    .point-card {
+      border: 1.5px solid #e8e8e8;
       border-radius: 12px;
-      padding: 20px;
-    }
-    .result-box.accent { background: #eef1fd; }
-
-    .result-platform {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #4f6ef7;
-      margin-bottom: 12px;
-    }
-    .result-platform .platform-icon { font-size: 16px; }
-
-    .result-text {
-      font-size: 14px;
-      line-height: 1.7;
-      color: #1a1a2e;
-      white-space: pre-wrap;
-      margin-bottom: 12px;
-      min-height: 80px;
-    }
-
-    .result-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .char-count {
-      font-size: 11px;
-      color: #aaa;
-      font-variant-numeric: tabular-nums;
-    }
-    .char-count.over { color: #e55; }
-
-    .copy-btn {
-      padding: 6px 14px;
-      border: 1.5px solid #4f6ef7;
-      border-radius: 8px;
-      background: #fff;
-      color: #4f6ef7;
-      font-size: 12px;
-      font-weight: 600;
+      padding: 14px;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-    .copy-btn:hover { background: #4f6ef7; color: #fff; }
-    .copy-btn.copied { background: #eef1fd; color: #4f6ef7; border-color: #c0c8f5; }
-
-    /* AI Log (collapsed) */
-    .log-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
       user-select: none;
     }
-    .log-toggle-icon { font-size: 12px; color: #bbb; transition: transform 0.2s; }
-    .log-toggle-icon.open { transform: rotate(180deg); }
+    .point-card:hover { border-color: #b0bcf8; background: #fafbff; }
+    .point-card.selected {
+      border-color: #4f6ef7;
+      background: #eef1fd;
+    }
+    .point-card.selected .point-check { opacity: 1; }
 
-    .log-body { display: none; margin-top: 16px; }
-    .log-body.open { display: block; }
-
-    .log-section { margin-bottom: 20px; }
-    .log-section-title {
-      font-size: 12px;
+    .point-check {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #4f6ef7;
+      color: #fff;
+      font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .point-num {
+      font-size: 10px;
       font-weight: 700;
+      color: #bbb;
+      margin-bottom: 4px;
+    }
+    .point-card.selected .point-num { color: #4f6ef7; }
+    .point-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 5px;
+      padding-right: 24px;
+    }
+    .point-insight {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .point-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .badge-type { background: #f0f0f0; color: #666; }
+    .badge-views { background: #fff3e0; color: #e67e22; }
+    .badge-views.high { background: #eef1fd; color: #4f6ef7; }
+    .point-hook {
+      font-size: 11px;
       color: #888;
-      margin-bottom: 10px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #f0f0f0;
+      font-style: italic;
+    }
+
+    .generate-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Post results */
+    .post-block {
+      border: 1.5px solid #e8e8e8;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: opacity 0.3s;
+    }
+    .post-block.done-post { opacity: 0.45; }
+
+    .post-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #f8f9ff;
+      border-bottom: 1px solid #eee;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .post-block-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .log-section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #f0f0f0;
-    }
-
-    .draft-item {
-      background: #f8f9ff;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 10px;
-      font-size: 13px;
-    }
-    .draft-type {
+    .post-block-title .day-label {
       font-size: 11px;
-      font-weight: 600;
-      color: #4f6ef7;
-      margin-bottom: 6px;
-      text-transform: uppercase;
+      background: #4f6ef7;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 20px;
     }
-    .draft-content { color: #1a1a2e; line-height: 1.6; white-space: pre-wrap; }
+    .done-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid #e0e0e0;
+      background: #fff;
+      color: #aaa;
+      transition: all 0.15s;
+    }
+    .done-btn:hover { border-color: #4f6ef7; color: #4f6ef7; }
+    .done-btn.is-done { background: #eef1fd; border-color: #4f6ef7; color: #4f6ef7; }
 
-    .score-row {
+    .post-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 600px) { .post-cols { grid-template-columns: 1fr; } }
+
+    .post-col {
+      padding: 16px;
+    }
+    .post-col:first-child { border-right: 1px solid #f0f0f0; }
+
+    .post-platform {
+      font-size: 11px;
+      font-weight: 700;
+      color: #4f6ef7;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      margin-top: 8px;
+      gap: 5px;
     }
-    .score-badge {
-      background: #eef1fd;
-      color: #4f6ef7;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-    }
-    .score-text { color: #aaa; }
 
-    .key-points {
-      background: #fffbf5;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 13px;
+    .post-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #1a1a2e;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: 10px;
+      min-height: 60px;
     }
-    .key-points ul { padding-left: 18px; }
-    .key-points li { margin-bottom: 4px; color: #555; line-height: 1.5; }
-    .key-points .kp-label {
+    .post-text .line1 {
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .post-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .char-count { font-size: 11px; color: #bbb; }
+    .char-count.over { color: #e55; font-weight: 700; }
+
+    .copy-btn {
+      padding: 5px 12px;
+      border: 1.5px solid #4f6ef7;
+      border-radius: 7px;
+      background: #fff;
+      color: #4f6ef7;
       font-size: 11px;
       font-weight: 700;
-      color: #e67e22;
-      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
+    .copy-btn:hover { background: #4f6ef7; color: #fff; }
+    .copy-btn.copied { background: #eef1fd; border-color: #c5cdf8; color: #4f6ef7; }
 
-    .regenerate-row {
+    /* Day labels */
+    .days-row {
       display: flex;
-      justify-content: center;
-      margin-top: 16px;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
+    .day-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #f0f0f0;
+      color: #999;
+    }
+    .day-chip.active { background: #4f6ef7; color: #fff; }
+    .day-chip.done-chip { background: #eef1fd; color: #4f6ef7; text-decoration: line-through; opacity: 0.6; }
+
+    /* Sections hidden by default */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
 
-    <div class="header">
-      <h1>📝 ポストジェネレーター</h1>
-      <p>note記事のURLを入力するだけで、X・Threadsのポスト案を自動生成します</p>
-    </div>
-
-    <!-- 入力 -->
-    <div class="card">
-      <div class="card-title">note記事URL</div>
-      <div class="input-row">
-        <input type="url" id="noteUrl" placeholder="https://note.com/kwu/n/..." />
-        <button class="btn btn-primary" id="generateBtn" onclick="generate()">生成する</button>
-      </div>
-      <div class="error-msg" id="errorMsg"></div>
-    </div>
-
-    <!-- 進捗 -->
-    <div class="card" id="progressCard">
-      <div class="card-title">生成中...</div>
-      <ul class="steps">
-        <li class="step" id="step-fetch">
-          <div class="step-icon">📰</div>
-          <span>記事を取得中...</span>
-        </li>
-        <li class="step" id="step-extract">
-          <div class="step-icon">🔍</div>
-          <span>核心を抽出中（GPT）</span>
-        </li>
-        <li class="step" id="step-drafts">
-          <div class="step-icon">✏️</div>
-          <span>ポスト案を生成中（GPT）</span>
-        </li>
-        <li class="step" id="step-gemini">
-          <div class="step-icon">🔄</div>
-          <span>評価・改訂中（Gemini）</span>
-        </li>
-        <li class="step" id="step-polish">
-          <div class="step-icon">✨</div>
-          <span>最終精緻化中（Claude）</span>
-        </li>
-      </ul>
-    </div>
-
-    <!-- 結果 -->
-    <div class="card" id="resultsCard">
-      <div class="card-title">生成結果</div>
-      <div class="results-grid">
-        <!-- Threads -->
-        <div class="result-box accent">
-          <div class="result-platform">
-            <span class="platform-icon">🧵</span> Threads
-          </div>
-          <div class="result-text" id="threadsText"></div>
-          <div class="result-footer">
-            <span class="char-count" id="threadsCount">0 字</span>
-            <button class="copy-btn" onclick="copyText('threadsText', this)">コピー</button>
-          </div>
-        </div>
-        <!-- X -->
-        <div class="result-box">
-          <div class="result-platform">
-            <span class="platform-icon">𝕏</span> X（旧Twitter）
-          </div>
-          <div class="result-text" id="xText"></div>
-          <div class="result-footer">
-            <span class="char-count" id="xCount">0 字 / 140字</span>
-            <button class="copy-btn" onclick="copyText('xText', this)">コピー</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="regenerate-row">
-        <button class="btn btn-primary" onclick="generate()">再生成する</button>
-      </div>
-    </div>
-
-    <!-- AIログ -->
-    <div class="card" id="logCard" style="display:none;">
-      <div class="log-toggle" onclick="toggleLog()">
-        <div class="card-title" style="margin:0">AI作業ログ</div>
-        <span class="log-toggle-icon" id="logIcon">▼</span>
-      </div>
-      <div class="log-body" id="logBody">
-
-        <div class="log-section">
-          <div class="log-section-title">📌 抽出した核心</div>
-          <div class="key-points" id="keyPointsLog"></div>
-        </div>
-
-        <div class="log-section">
-          <div class="log-section-title">✏️ GPT生成案（Threads）</div>
-          <div id="threadsDraftsLog"></div>
-        </div>
-
-        <div class="log-section">
-          <div class="log-section-title">✏️ GPT生成案（X）</div>
-          <div id="xDraftsLog"></div>
-        </div>
-
-        <div class="log-section">
-          <div class="log-section-title">🔄 Geminiの評価・改善</div>
-          <div id="geminiLog"></div>
-        </div>
-
-      </div>
-    </div>
-
+  <div class="header">
+    <h1>📝 ポストジェネレーター</h1>
+    <p>note記事から1週間5投稿分（月〜金）のX・Threadsポスト案を生成します</p>
   </div>
 
-  <script>
-    const STEPS = ['fetch', 'extract', 'drafts', 'gemini', 'polish', 'complete'];
-    let pollTimer = null;
+  <!-- Phase 1: URL入力 -->
+  <div class="card" id="inputCard">
+    <div class="card-title">note記事URL</div>
+    <div class="input-row">
+      <input type="url" id="noteUrl" placeholder="https://note.com/kwu/n/..." />
+      <button class="btn btn-primary" id="extractBtn" onclick="startExtract()">核心を抽出</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
 
-    async function generate() {
-      const noteUrl = document.getElementById('noteUrl').value.trim();
-      if (!noteUrl) { showError('note記事のURLを入力してください'); return; }
-      if (!noteUrl.includes('note.com')) { showError('note.comのURLを入力してください'); return; }
+  <!-- 進捗（抽出） -->
+  <div class="card hidden" id="extractProgress">
+    <div class="card-title">処理中...</div>
+    <ul class="steps">
+      <li class="step" id="step-fetch"><div class="step-icon">📰</div><span>記事を取得中...</span></li>
+      <li class="step" id="step-extract"><div class="step-icon">🔍</div><span>核心10点を抽出中（GPT）</span></li>
+    </ul>
+  </div>
 
-      hideError();
-      resetProgress();
-      showSection('progressCard');
-      hideSection('resultsCard');
-      hideSection('logCard');
-      document.getElementById('generateBtn').disabled = true;
+  <!-- Phase 2: 核心選択 -->
+  <div class="card hidden" id="selectCard">
+    <div class="points-header">
+      <div class="card-title" style="margin:0">核心10点 ─ 最大5つ選択</div>
+      <div class="points-count">選択中：<span id="selectedCount">0</span> / 5</div>
+    </div>
+    <div class="points-grid" id="pointsGrid"></div>
+    <div class="generate-bar">
+      <button class="btn btn-outline btn-sm" onclick="clearSelection()">選択解除</button>
+      <button class="btn btn-primary" id="generateBtn" onclick="startGenerate()" disabled>
+        選択した核心でポスト生成
+      </button>
+    </div>
+  </div>
 
-      try {
-        const res = await fetch('/api/post-generator/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noteUrl })
-        });
-        const { jobId, error } = await res.json();
-        if (error) { showError(error); resetUI(); return; }
+  <!-- 進捗（生成） -->
+  <div class="card hidden" id="generateProgress">
+    <div class="card-title">ポスト生成中...</div>
+    <ul class="steps">
+      <li class="step" id="step-drafts"><div class="step-icon">✏️</div><span>ポスト案を生成中（GPT）</span></li>
+      <li class="step" id="step-gemini"><div class="step-icon">🔄</div><span>1行目を強化中（Gemini）</span></li>
+      <li class="step" id="step-polish"><div class="step-icon">✨</div><span>最終精緻化中</span></li>
+    </ul>
+  </div>
 
-        pollTimer = setInterval(() => pollResult(jobId), 1500);
-      } catch (e) {
-        showError('通信エラーが発生しました: ' + e.message);
-        resetUI();
-      }
-    }
+  <!-- Phase 3: 結果 -->
+  <div class="hidden" id="resultsSection">
+    <div class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div class="card-title" style="margin:0">生成結果</div>
+        <button class="btn btn-outline btn-sm" onclick="backToSelect()">← 選択に戻る</button>
+      </div>
+      <div class="days-row" id="daysRow"></div>
+    </div>
+    <div id="postsContainer"></div>
+  </div>
 
-    async function pollResult(jobId) {
-      try {
-        const res = await fetch(`/api/post-generator/result/${jobId}`);
-        const job = await res.json();
+</div>
 
-        updateProgress(job.step);
+<script>
+  const DAYS = ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日'];
+  const EXTRACT_STEPS = ['fetch', 'extract'];
+  const GENERATE_STEPS = ['drafts', 'gemini', 'polish', 'complete'];
 
-        if (job.status === 'done') {
-          clearInterval(pollTimer);
-          showResults(job);
-          resetUI();
-        } else if (job.status === 'error') {
-          clearInterval(pollTimer);
-          showError(job.error || '生成中にエラーが発生しました');
-          resetUI();
-        }
-      } catch (e) {
-        // ネットワークエラーは無視して再試行
-      }
-    }
+  let state = {
+    noteUrl: '',
+    articleText: '',
+    points: [],
+    selectedIds: new Set(),
+    posts: [],
+    pollTimer: null
+  };
 
-    function updateProgress(currentStep) {
-      const currentIdx = STEPS.indexOf(currentStep);
-      STEPS.forEach((id, i) => {
-        const el = document.getElementById(`step-${id}`);
-        if (!el) return;
-        el.classList.remove('active', 'done');
-        if (i < currentIdx) el.classList.add('done');
-        else if (i === currentIdx) el.classList.add('active');
+  // ─── Phase 1: 抽出 ────────────────────────────────────────────────────────
+
+  async function startExtract() {
+    const url = document.getElementById('noteUrl').value.trim();
+    if (!url) { showError('note記事のURLを入力してください'); return; }
+    if (!url.includes('note.com')) { showError('note.comのURLを入力してください'); return; }
+
+    state.noteUrl = url;
+    hideError();
+    show('extractProgress');
+    hide('selectCard');
+    hide('resultsSection');
+    document.getElementById('extractBtn').disabled = true;
+
+    try {
+      const res = await fetch('/api/post-generator/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noteUrl: url })
       });
+      const { jobId, error } = await res.json();
+      if (error) { showError(error); resetExtractUI(); return; }
+      state.pollTimer = setInterval(() => pollExtract(jobId), 1500);
+    } catch (e) {
+      showError('通信エラー: ' + e.message);
+      resetExtractUI();
     }
+  }
 
-    function showResults(job) {
-      const { final, keyPoints, drafts, revised } = job;
-
-      // メイン結果
-      const threadsText = final?.threads?.final || '';
-      const xText = final?.x?.final || '';
-
-      setResult('threadsText', 'threadsCount', threadsText, 500);
-      setResult('xText', 'xCount', xText, 140, true);
-
-      showSection('resultsCard');
-
-      // AI ログ
-      renderLog(keyPoints, drafts, revised);
-      showSection('logCard');
-
-      hideSection('progressCard');
-    }
-
-    function setResult(textId, countId, text, limit, showLimit = false) {
-      document.getElementById(textId).textContent = text;
-      const count = text.length;
-      const countEl = document.getElementById(countId);
-      countEl.textContent = showLimit ? `${count} 字 / ${limit}字` : `${count} 字`;
-      countEl.classList.toggle('over', count > limit);
-    }
-
-    function renderLog(keyPoints, drafts, revised) {
-      // 核心
-      if (keyPoints) {
-        const kp = document.getElementById('keyPointsLog');
-        kp.innerHTML = `
-          <div class="kp-label">主題：${keyPoints.mainThesis || ''}</div>
-          <ul>${(keyPoints.points || []).map(p => `<li>${p}</li>`).join('')}</ul>
-        `;
+  async function pollExtract(jobId) {
+    try {
+      const res = await fetch(`/api/post-generator/result/${jobId}`);
+      const job = await res.json();
+      updateExtractProgress(job.step);
+      if (job.status === 'done') {
+        clearInterval(state.pollTimer);
+        state.points = job.points;
+        state.articleText = job.articleText;
+        renderPoints();
+        hide('extractProgress');
+        show('selectCard');
+        resetExtractUI();
+      } else if (job.status === 'error') {
+        clearInterval(state.pollTimer);
+        showError(job.error || '抽出中にエラーが発生しました');
+        hide('extractProgress');
+        resetExtractUI();
       }
+    } catch (e) {}
+  }
 
-      // GPT Threads案
-      if (drafts?.threads) {
-        document.getElementById('threadsDraftsLog').innerHTML =
-          drafts.threads.map((d, i) => `
-            <div class="draft-item">
-              <div class="draft-type">案${i + 1} — ${d.type}</div>
-              <div class="draft-content">${escHtml(d.content)}</div>
+  function updateExtractProgress(step) {
+    EXTRACT_STEPS.forEach((id, i) => {
+      const el = document.getElementById(`step-${id}`);
+      if (!el) return;
+      el.classList.remove('active', 'done');
+      const cur = EXTRACT_STEPS.indexOf(step);
+      if (i < cur) el.classList.add('done');
+      else if (i === cur) el.classList.add('active');
+    });
+  }
+
+  function resetExtractUI() {
+    document.getElementById('extractBtn').disabled = false;
+  }
+
+  // ─── 核心カード表示 ────────────────────────────────────────────────────────
+
+  function renderPoints() {
+    const grid = document.getElementById('pointsGrid');
+    grid.innerHTML = state.points.map(p => `
+      <div class="point-card ${state.selectedIds.has(p.id) ? 'selected' : ''}"
+           id="point-${p.id}" onclick="togglePoint(${p.id})">
+        <div class="point-check">✓</div>
+        <div class="point-num">${p.id}</div>
+        <div class="point-title">${esc(p.title)}</div>
+        <div class="point-insight">${esc(p.insight)}</div>
+        <div class="point-meta">
+          <span class="badge badge-type">${esc(p.type)}</span>
+          <span class="badge badge-views ${p.expectedViews === '1000+' ? 'high' : ''}">${esc(p.expectedViews)}</span>
+        </div>
+        <div class="point-hook">💡 ${esc(p.hook)}</div>
+      </div>
+    `).join('');
+    updateSelectedCount();
+  }
+
+  function togglePoint(id) {
+    if (state.selectedIds.has(id)) {
+      state.selectedIds.delete(id);
+    } else {
+      if (state.selectedIds.size >= 5) {
+        showError('最大5つまで選択できます');
+        return;
+      }
+      state.selectedIds.add(id);
+    }
+    hideError();
+    document.getElementById(`point-${id}`).classList.toggle('selected', state.selectedIds.has(id));
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const count = state.selectedIds.size;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('generateBtn').disabled = count === 0;
+  }
+
+  function clearSelection() {
+    state.selectedIds.clear();
+    document.querySelectorAll('.point-card').forEach(el => el.classList.remove('selected'));
+    updateSelectedCount();
+  }
+
+  // ─── Phase 2: ポスト生成 ──────────────────────────────────────────────────
+
+  async function startGenerate() {
+    const selectedPoints = state.points.filter(p => state.selectedIds.has(p.id));
+    if (!selectedPoints.length) return;
+
+    hide('selectCard');
+    show('generateProgress');
+    hide('resultsSection');
+    document.getElementById('generateBtn').disabled = true;
+
+    try {
+      const res = await fetch('/api/post-generator/generate-posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selectedPoints, articleText: state.articleText })
+      });
+      const { jobId, error } = await res.json();
+      if (error) { showError(error); backToSelect(); return; }
+      state.pollTimer = setInterval(() => pollGenerate(jobId), 1500);
+    } catch (e) {
+      showError('通信エラー: ' + e.message);
+      backToSelect();
+    }
+  }
+
+  async function pollGenerate(jobId) {
+    try {
+      const res = await fetch(`/api/post-generator/result/${jobId}`);
+      const job = await res.json();
+      updateGenerateProgress(job.step);
+      if (job.status === 'done') {
+        clearInterval(state.pollTimer);
+        state.posts = job.posts;
+        renderResults();
+        hide('generateProgress');
+        show('resultsSection');
+      } else if (job.status === 'error') {
+        clearInterval(state.pollTimer);
+        showError(job.error || '生成中にエラーが発生しました');
+        hide('generateProgress');
+        backToSelect();
+      }
+    } catch (e) {}
+  }
+
+  function updateGenerateProgress(step) {
+    GENERATE_STEPS.forEach((id, i) => {
+      const el = document.getElementById(`step-${id}`);
+      if (!el) return;
+      el.classList.remove('active', 'done');
+      const cur = GENERATE_STEPS.indexOf(step);
+      if (i < cur) el.classList.add('done');
+      else if (i === cur) el.classList.add('active');
+    });
+  }
+
+  function backToSelect() {
+    hide('generateProgress');
+    hide('resultsSection');
+    show('selectCard');
+    document.getElementById('generateBtn').disabled = state.selectedIds.size === 0;
+  }
+
+  // ─── 結果表示 ─────────────────────────────────────────────────────────────
+
+  function renderResults() {
+    // Day chips
+    const daysRow = document.getElementById('daysRow');
+    daysRow.innerHTML = state.posts.map((p, i) => {
+      const key = doneKey(i);
+      const isDone = localStorage.getItem(key) === '1';
+      return `<div class="day-chip ${isDone ? 'done-chip' : 'active'}" id="chip-${i}">${DAYS[i] || `投稿${i+1}`}</div>`;
+    }).join('');
+
+    // Posts
+    const container = document.getElementById('postsContainer');
+    container.innerHTML = state.posts.map((post, i) => {
+      const key = doneKey(i);
+      const isDone = localStorage.getItem(key) === '1';
+      const day = DAYS[i] || `投稿${i+1}`;
+      const threadsText = post.threads?.final || '';
+      const xText = post.x?.final || '';
+      const xCount = xText.length;
+
+      return `
+        <div class="post-block ${isDone ? 'done-post' : ''}" id="post-block-${i}">
+          <div class="post-block-header">
+            <div class="post-block-title">
+              <span class="day-label">${day}</span>
+              ${esc(post.pointTitle || '')}
+              <span class="badge badge-type" style="margin-left:4px">${esc(post.pointType || '')}</span>
             </div>
-          `).join('');
-      }
-
-      // GPT X案
-      if (drafts?.x) {
-        document.getElementById('xDraftsLog').innerHTML =
-          drafts.x.map((d, i) => `
-            <div class="draft-item">
-              <div class="draft-type">案${i + 1} — ${d.type}</div>
-              <div class="draft-content">${escHtml(d.content)}</div>
+            <button class="done-btn ${isDone ? 'is-done' : ''}" id="done-btn-${i}" onclick="toggleDone(${i})">
+              ${isDone ? '✓ 済み' : '済みにする'}
+            </button>
+          </div>
+          <div class="post-cols">
+            <div class="post-col">
+              <div class="post-platform">🧵 Threads</div>
+              <div class="post-text" id="threads-${i}">${formatPost(threadsText)}</div>
+              <div class="post-footer">
+                <span class="char-count">${threadsText.length} 字</span>
+                <button class="copy-btn" onclick="copyPost('threads-${i}', this)">コピー</button>
+              </div>
             </div>
-          `).join('');
-      }
-
-      // Gemini評価
-      if (revised) {
-        document.getElementById('geminiLog').innerHTML = `
-          <div class="draft-item">
-            <div class="draft-type">Threadsの改善</div>
-            <div class="draft-content">${escHtml(revised.bestThreads?.improvements || '')}</div>
-            ${geminiScore(revised.threadsScores, revised.bestThreads?.selectedIndex)}
+            <div class="post-col">
+              <div class="post-platform">𝕏 X</div>
+              <div class="post-text" id="x-${i}">${esc(xText)}</div>
+              <div class="post-footer">
+                <span class="char-count ${xCount > 140 ? 'over' : ''}">${xCount} / 140字</span>
+                <button class="copy-btn" onclick="copyPost('x-${i}', this)">コピー</button>
+              </div>
+            </div>
           </div>
-          <div class="draft-item">
-            <div class="draft-type">Xの改善</div>
-            <div class="draft-content">${escHtml(revised.bestX?.improvements || '')}</div>
-            ${geminiScore(revised.xScores, revised.bestX?.selectedIndex)}
-          </div>
-        `;
-      }
-    }
+        </div>
+      `;
+    }).join('');
+  }
 
-    function geminiScore(scores, bestIdx) {
-      if (!scores?.length) return '';
-      return `<div class="score-row">
-        ${scores.map(s => `
-          <span class="score-badge${s.index === bestIdx ? '' : ''}" style="${s.index === bestIdx ? '' : 'background:#f0f0f0;color:#888'}">
-            案${s.index}：${s.total}点
-          </span>
-        `).join('')}
-      </div>`;
-    }
+  function formatPost(text) {
+    // 1行目を太字に、残りは通常テキストで改行を反映
+    const lines = text.split('\n');
+    if (!lines.length) return esc(text);
+    const first = `<span class="line1">${esc(lines[0])}</span>`;
+    const rest = lines.slice(1).map(l => esc(l)).join('\n');
+    return first + (rest ? '\n' + rest : '');
+  }
 
-    function copyText(id, btn) {
-      const text = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'コピー済み';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = 'コピー';
-          btn.classList.remove('copied');
-        }, 2000);
-      });
+  function toggleDone(i) {
+    const key = doneKey(i);
+    const isDone = localStorage.getItem(key) === '1';
+    if (isDone) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, '1');
     }
+    // Update UI
+    const block = document.getElementById(`post-block-${i}`);
+    const btn = document.getElementById(`done-btn-${i}`);
+    const chip = document.getElementById(`chip-${i}`);
+    const newDone = !isDone;
+    block.classList.toggle('done-post', newDone);
+    btn.classList.toggle('is-done', newDone);
+    btn.textContent = newDone ? '✓ 済み' : '済みにする';
+    if (chip) {
+      chip.classList.toggle('done-chip', newDone);
+      chip.classList.toggle('active', !newDone);
+    }
+  }
 
-    function toggleLog() {
-      const body = document.getElementById('logBody');
-      const icon = document.getElementById('logIcon');
-      body.classList.toggle('open');
-      icon.classList.toggle('open');
-    }
+  function doneKey(i) {
+    return `done_${state.noteUrl}_${state.posts[i]?.pointId || i}`;
+  }
 
-    function showError(msg) {
-      const el = document.getElementById('errorMsg');
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
-    function hideError() { document.getElementById('errorMsg').style.display = 'none'; }
-    function showSection(id) { document.getElementById(id).style.display = 'block'; }
-    function hideSection(id) { document.getElementById(id).style.display = 'none'; }
+  function copyPost(id, btn) {
+    // プレーンテキストとして取得（HTMLタグ除去）
+    const el = document.getElementById(id);
+    const text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'コピー済み';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
 
-    function resetProgress() {
-      STEPS.forEach(id => {
-        const el = document.getElementById(`step-${id}`);
-        if (el) el.classList.remove('active', 'done');
-      });
-    }
+  // ─── ユーティリティ ────────────────────────────────────────────────────────
 
-    function resetUI() {
-      document.getElementById('generateBtn').disabled = false;
-    }
-
-    function escHtml(str) {
-      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-  </script>
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg; el.style.display = 'block';
+  }
+  function hideError() { document.getElementById('errorMsg').style.display = 'none'; }
+  function esc(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
 </body>
 </html>
